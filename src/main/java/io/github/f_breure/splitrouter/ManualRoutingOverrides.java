@@ -30,11 +30,47 @@ public final class ManualRoutingOverrides implements PersistentStateComponent<Ma
     private final Set<String> dragging = new HashSet<>();
     private final Map<String, ObservedDrag> pendingDrops = new java.util.HashMap<>();
     private final Map<TabInfo, ObservedDrag> observedTabs = new IdentityHashMap<>();
+    static final long FOCUS_TRANSFER_TIMEOUT_MS = 3000;
+
     private boolean routing;
     private long selectionVersion;
+    private String transferUrl;
+    private long transferDeadline;
+    private List<EditorWindow> transferSources = List.of();
 
     public void recordSelection() {
         if (!routing) selectionVersion++;
+    }
+
+    public void beginFocusTransfer(String url, List<EditorWindow> sources, long nowMillis) {
+        transferUrl = url;
+        transferSources = List.copyOf(sources);
+        transferDeadline = nowMillis + FOCUS_TRANSFER_TIMEOUT_MS;
+    }
+
+    public List<EditorWindow> getTransferSources() {
+        return transferUrl == null ? List.of() : transferSources;
+    }
+
+    public void endFocusTransfer(String url) {
+        if (url.equals(transferUrl)) {
+            transferUrl = null;
+            transferSources = List.of();
+        }
+    }
+
+    /**
+     * Selection events caused by moving a tab: selecting the moved file in its
+     * destination, or the replacement tab CLion selects in the source pane.
+     */
+    public boolean isFocusTransferSelection(String newUrl, boolean selectedInSourcePane, long nowMillis) {
+        if (transferUrl == null) return false;
+        if (nowMillis > transferDeadline) {
+            transferUrl = null;
+            transferSources = List.of();
+            return false;
+        }
+        return transferUrl.equals(newUrl) || selectedInSourcePane;
     }
 
     public long getSelectionVersion() {
@@ -63,8 +99,16 @@ public final class ManualRoutingOverrides implements PersistentStateComponent<Ma
     }
 
     public synchronized void rememberMove(String url, boolean changedPane) {
+        rememberMove(url, changedPane, false);
+    }
+
+    public synchronized void rememberMove(String url, boolean changedPane, boolean movedToDefault) {
         if (changedPane) {
-            fileUrls.add(url);
+            if (movedToDefault) {
+                fileUrls.remove(url);
+            } else {
+                fileUrls.add(url);
+            }
         }
     }
 
@@ -81,7 +125,7 @@ public final class ManualRoutingOverrides implements PersistentStateComponent<Ma
         ObservedDrag pending = pendingDrops.get(url);
         if (pending != null) {
             if (pending.changedPane.getAsBoolean()) {
-                rememberMove(url, true);
+                rememberMove(url, true, pending.movedToDefault.getAsBoolean());
                 pendingDrops.remove(url);
             } else if (pending.filePresent.getAsBoolean()) {
                 pendingDrops.remove(url);
@@ -105,8 +149,13 @@ public final class ManualRoutingOverrides implements PersistentStateComponent<Ma
                     TabInfo.DragOutDelegate original = tab.getDragOutDelegate();
                     if (original != null && !(original instanceof ObservedDrag)) {
                         ObservedDrag observer = new ObservedDrag(original, file.getUrl(),
-                                () -> java.util.Arrays.stream(manager.getWindows())
-                                        .anyMatch(candidate -> candidate != window && candidate.isFileOpen(file)),
+                                () -> findDestinationWindow(manager, window, file) != null,
+                                () -> {
+                                    EditorWindow dest = findDestinationWindow(manager, window, file);
+                                    if (dest == null) return false;
+                                    EditorWindow target = FileSplitRouterListener.getTargetWindow(manager, file);
+                                    return target != null && dest == target;
+                                },
                                 () -> java.util.Arrays.stream(manager.getWindows())
                                         .anyMatch(candidate -> candidate.isFileOpen(file)));
                         observedTabs.put(tab, observer);
@@ -122,6 +171,13 @@ public final class ManualRoutingOverrides implements PersistentStateComponent<Ma
         });
     }
 
+    private static EditorWindow findDestinationWindow(FileEditorManagerEx manager, EditorWindow sourceWindow, VirtualFile file) {
+        return java.util.Arrays.stream(manager.getWindows())
+                .filter(candidate -> candidate != sourceWindow && candidate.isFileOpen(file))
+                .findFirst()
+                .orElse(null);
+    }
+
     private void restoreDelegate(TabInfo tab, ObservedDrag observer) {
         if (tab.getDragOutDelegate() == observer) {
             tab.setDragOutDelegate(observer.original);
@@ -129,12 +185,18 @@ public final class ManualRoutingOverrides implements PersistentStateComponent<Ma
     }
 
     ObservedDrag observeDrag(TabInfo.DragOutDelegate original, String url, BooleanSupplier changedPane) {
-        return new ObservedDrag(original, url, changedPane, () -> true);
+        return new ObservedDrag(original, url, changedPane, () -> false, () -> true);
     }
 
     ObservedDrag observeDrag(TabInfo.DragOutDelegate original, String url,
                              BooleanSupplier changedPane, BooleanSupplier filePresent) {
-        return new ObservedDrag(original, url, changedPane, filePresent);
+        return new ObservedDrag(original, url, changedPane, () -> false, filePresent);
+    }
+
+    ObservedDrag observeDrag(TabInfo.DragOutDelegate original, String url,
+                             BooleanSupplier changedPane, BooleanSupplier movedToDefault,
+                             BooleanSupplier filePresent) {
+        return new ObservedDrag(original, url, changedPane, movedToDefault, filePresent);
     }
 
     @Override
@@ -150,13 +212,16 @@ public final class ManualRoutingOverrides implements PersistentStateComponent<Ma
         private final TabInfo.DragOutDelegate original;
         private final String url;
         private final BooleanSupplier changedPane;
+        private final BooleanSupplier movedToDefault;
         private final BooleanSupplier filePresent;
 
         private ObservedDrag(TabInfo.DragOutDelegate original, String url,
-                             BooleanSupplier changedPane, BooleanSupplier filePresent) {
+                             BooleanSupplier changedPane, BooleanSupplier movedToDefault,
+                             BooleanSupplier filePresent) {
             this.original = original;
             this.url = url;
             this.changedPane = changedPane;
+            this.movedToDefault = movedToDefault;
             this.filePresent = filePresent;
         }
 
@@ -186,7 +251,7 @@ public final class ManualRoutingOverrides implements PersistentStateComponent<Ma
             try {
                 original.dragOutFinished(event, tab);
                 if (changedPane.getAsBoolean()) {
-                    rememberMove(url, true);
+                    rememberMove(url, true, movedToDefault.getAsBoolean());
                 } else if (!filePresent.getAsBoolean()) {
                     // CLion may create the destination asynchronously after the drag ends.
                     pendingDrops.put(url, this);

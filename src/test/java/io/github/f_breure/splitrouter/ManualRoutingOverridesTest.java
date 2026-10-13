@@ -27,6 +27,33 @@ public class ManualRoutingOverridesTest {
     }
 
     @Test
+    public void tabMoveSelectionsAreIgnoredOnlyDuringTransfer() {
+        ManualRoutingOverrides overrides = new ManualRoutingOverrides();
+        String header = "file:///project/a.hpp";
+        String other = "file:///project/b.cpp";
+        assertFalse(overrides.isFocusTransferSelection(header, false, 0));
+
+        overrides.beginFocusTransfer(header, List.of(), 1000);
+        assertTrue(overrides.isFocusTransferSelection(header, false, 1001));
+        assertTrue(overrides.isFocusTransferSelection(other, true, 1002));
+        assertFalse(overrides.isFocusTransferSelection(other, false, 1003));
+
+        overrides.endFocusTransfer(header);
+        assertFalse(overrides.isFocusTransferSelection(header, false, 1004));
+        assertTrue(overrides.getTransferSources().isEmpty());
+    }
+
+    @Test
+    public void focusTransferExpires() {
+        ManualRoutingOverrides overrides = new ManualRoutingOverrides();
+        String header = "file:///project/a.hpp";
+        overrides.beginFocusTransfer(header, List.of(), 1000);
+        long expired = 1000 + ManualRoutingOverrides.FOCUS_TRANSFER_TIMEOUT_MS + 1;
+        assertFalse(overrides.isFocusTransferSelection(header, true, expired));
+        assertFalse(overrides.isFocusTransferSelection(header, true, 1001));
+    }
+
+    @Test
     public void onlyCompletedPaneChangesCreateOverrides() {
         ManualRoutingOverrides overrides = new ManualRoutingOverrides();
         overrides.rememberMove(FILE, false);
@@ -127,6 +154,50 @@ public class ManualRoutingOverridesTest {
         ManualRoutingOverrides reopened = new ManualRoutingOverrides();
         reopened.loadState(overrides.getState());
         assertTrue(reopened.isExempt(FILE));
+    }
+
+    @Test
+    public void movingBackToDefaultPaneClearsOverride() {
+        ManualRoutingOverrides overrides = new ManualRoutingOverrides();
+        overrides.rememberMove(FILE, true, false);
+        assertTrue(overrides.isExempt(FILE));
+
+        overrides.rememberMove(FILE, true, true);
+        assertFalse(overrides.isExempt(FILE));
+        assertTrue(overrides.getState().fileUrls.isEmpty());
+    }
+
+    @Test
+    public void dragObserverClearsOverrideWhenMovedToDefaultPane() {
+        ManualRoutingOverrides overrides = new ManualRoutingOverrides();
+        overrides.rememberMove(FILE, true, false);
+        assertTrue(overrides.isExempt(FILE));
+
+        TabInfo.DragOutDelegate observer = overrides.observeDrag(
+                new RecordingDrag(), FILE, () -> true, () -> true, () -> true);
+        observer.dragOutStarted(null, null);
+        observer.dragOutFinished(null, null);
+
+        assertFalse(overrides.isExempt(FILE));
+        assertFalse(overrides.shouldSkip(FILE));
+    }
+
+    @Test
+    public void asynchronousDropClearsOverrideWhenMovedToDefaultPane() {
+        ManualRoutingOverrides overrides = new ManualRoutingOverrides();
+        overrides.rememberMove(FILE, true, false);
+        assertTrue(overrides.isExempt(FILE));
+
+        AtomicBoolean destinationOpen = new AtomicBoolean();
+        TabInfo.DragOutDelegate observer = overrides.observeDrag(
+                new RecordingDrag(), FILE, destinationOpen::get, () -> true, destinationOpen::get);
+        observer.dragOutStarted(null, null);
+        observer.dragOutFinished(null, null);
+        assertTrue(overrides.shouldSkip(FILE));
+
+        destinationOpen.set(true);
+        assertFalse(overrides.shouldSkip(FILE));
+        assertFalse(overrides.isExempt(FILE));
     }
 
     private static final class RecordingDrag implements TabInfo.DragOutDelegate {

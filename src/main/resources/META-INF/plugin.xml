@@ -25,6 +25,18 @@
         Copyright (C) 2026 Frank Breure.</p>
     ]]></description>
     <change-notes><![CDATA[
+        <p>1.1.1: Clear manual routing overrides when tabs are moved back to
+        their default pane, and improve routing and focus behavior for newly
+        opened files.</p>
+        <p>1.0.9: Clear manual routing overrides when a tab is dragged back to its
+        default pane, restoring automatic routing for that file.</p>
+        <p>1.0.8: Focus newly opened files after they are moved to the other pane.
+        Detect selection in the pane that actually holds the new tab, ignore the
+        replacement tab CLion selects in the source pane, and stop switching panes
+        before files open.</p>
+        <p>1.0.7: Add opt-in debug logging for routing and keyboard focus diagnostics.</p>
+        <p>1.0.6: Wait for newly routed text editors to finish loading before
+        requesting keyboard focus. Cancel stale requests when selection changes.</p>
         <p>1.0.5: Fix keyboard focus transfer to destination editor window when files are routed across splits.</p>
         <p>1.0.4: Restore destination editor focus after routing selected files
         without requesting focus for background openings.
@@ -48,7 +60,5 @@
     <applicationListeners>
         <listener class="io.github.f_breure.splitrouter.FileSplitRouterListener"
                   topic="com.intellij.openapi.fileEditor.FileEditorManagerListener"/>
-        <listener class="io.github.f_breure.splitrouter.FileSplitRouterListener"
-                  topic="com.intellij.openapi.fileEditor.FileEditorManagerListener$Before"/>
     </applicationListeners>
 </idea-plugin>

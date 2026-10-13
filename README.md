@@ -8,14 +8,17 @@ to the right pane; all other files are routed to the left. With only one pane,
 files open normally. The plugin does not create splits automatically.
 Routing also applies when selecting an already-open file.
 When a selected file is moved, keyboard focus is restored to its destination
-editor after the original tab closes. Background openings do not request focus.
+editor after the original tab closes and the destination text editor finishes
+loading. Pending focus requests are cancelled if another file is selected.
+Background openings do not request focus.
 
 Dragging a tab to another editor pane creates a manual override for that file:
-the plugin no longer routes it automatically. Overrides are saved per project
-in the IDE workspace and survive closing files and restarting CLion. They do
-not force a particular pane when reopening a file; CLion's normal opening
-behavior applies. Cancelled drags and tab reordering within a pane do not
-create overrides.
+the plugin no longer routes it automatically. Dragging the tab back to its
+default pane clears the override, resuming automatic routing. Overrides are
+saved per project in the IDE workspace and survive closing files and
+restarting CLion. They do not force a particular pane when reopening a file;
+CLion's normal opening behavior applies. Cancelled drags and tab reordering
+within a pane do not create overrides.
 
 ## Configuration
 
@@ -45,11 +48,21 @@ Java 21-compatible bytecode. Install JDK 25 before building.
 ./gradlew buildPlugin
 ```
 
-Install `build/distributions/clion-split-router-1.0.4.zip` using
+Install `build/distributions/clion-split-router-1.1.1.zip` using
 **Settings > Plugins > Install Plugin from Disk**.
 
 The plugin uses IntelliJ Platform editor implementation APIs. Compatibility
 with other IDEs or future CLion versions is not guaranteed.
+
+## Focus diagnostics
+
+To investigate focus failures, open **Help > Diagnostic Tools > Debug Log
+Settings** and add `#io.github.f_breure.splitrouter.FileSplitRouterListener`.
+Reproduce opening a previously closed file that routes to the other pane, then
+use **Help > Show Log in Files** to locate `idea.log`. Entries containing
+`Split router:` record pane identities, selection versions, editor readiness,
+focus cancellations, and focus-request results. File names are recorded locally;
+file contents are not logged. Remove the debug-log entry after collecting the trace.
 
 ## Feedback
 
