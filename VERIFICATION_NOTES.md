@@ -2,7 +2,7 @@
 
 **Plugin:** Split Window File Router
 **Submitted version:** 1.1.1
-**Current local version:** 1.1.2
+**Current local version:** 1.1.3
 **Verified against:** IntelliJ IDEA 2026.3 EAP (`263.6800.24`)
 **Date:** 2026-10-13
 **Marketplace result for 1.1.1:** **Compatible** in Plugin Verifier, but Marketplace requested resolution of internal API usages before approval.
@@ -62,4 +62,4 @@ All experimental API usages are now **0**.
 ## 3. Recommended Strategy
 
 - **Marketplace follow-up:** The Marketplace rejection email specifically cites internal API findings. The author can ask JetBrains whether a public alternative exists or explain why split-pane routing requires these APIs.
-- **Future maintenance:** Re-run Plugin Verifier against the 1.1.2 archive to confirm its findings. The 1.1.1 report itself remains historical and still records its original deprecated and experimental usages.
+- **Future maintenance:** Re-run Plugin Verifier against the 1.1.3 archive to confirm its findings. The 1.1.1 report itself remains historical and still records its original deprecated and experimental usages.

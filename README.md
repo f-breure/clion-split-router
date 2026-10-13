@@ -48,7 +48,7 @@ Java 21-compatible bytecode. Install JDK 25 before building.
 ./gradlew buildPlugin
 ```
 
-Install `build/distributions/clion-split-router-1.1.2.zip` using
+Install `build/distributions/clion-split-router-1.1.3.zip` using
 **Settings > Plugins > Install Plugin from Disk**.
 
 The plugin uses IntelliJ Platform editor implementation APIs. Compatibility

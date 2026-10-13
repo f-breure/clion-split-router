@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "io.github.f_breure"
-version = "1.1.2"
+version = "1.1.3"
 
 repositories {
     mavenCentral()

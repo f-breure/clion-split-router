@@ -25,6 +25,7 @@
         Copyright (C) 2026 Frank Breure.</p>
     ]]></description>
     <change-notes><![CDATA[
+        <p>1.1.3: Register manual routing overrides as a project light service.</p>
         <p>1.1.2: Remove deprecated and experimental API usages.</p>
         <p>1.1.1: Clear manual routing overrides when tabs are moved back to
         their default pane, and improve routing and focus behavior for newly
