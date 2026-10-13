@@ -40,3 +40,10 @@ with other IDEs or future CLion versions is not guaranteed.
 
 Report problems or request features at
 https://github.com/f-breure/clion-split-router/issues.
+
+## License
+
+Copyright (C) 2026 Frank Breure.
+
+Licensed under the GNU General Public License version 3 only
+(`GPL-3.0-only`). See [LICENSE](LICENSE) for the full terms.

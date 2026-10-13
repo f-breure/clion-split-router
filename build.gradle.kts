@@ -30,6 +30,11 @@ java {
 }
 
 tasks {
+    jar {
+        from("LICENSE") {
+            into("META-INF")
+        }
+    }
     patchPluginXml {
         sinceBuild.set("262")
     }

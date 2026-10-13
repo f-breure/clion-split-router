@@ -19,6 +19,8 @@
         include directives, paths, or filename glob patterns.</p>
         <p><a href="https://github.com/f-breure/clion-split-router">Source code</a>
         | <a href="https://github.com/f-breure/clion-split-router/issues">Report an issue</a></p>
+        <p>Licensed under the GNU General Public License version 3 only (GPL-3.0-only).
+        Copyright (C) 2026 Frank Breure.</p>
     ]]></description>
     <change-notes><![CDATA[
         <p>Initial release: automatic routing to left and right editor panes,
