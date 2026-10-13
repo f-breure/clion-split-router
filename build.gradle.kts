@@ -3,7 +3,7 @@ plugins {
     id("org.jetbrains.intellij.platform") version "2.19.0"
 }
 
-group = "com.example"
+group = "io.github.f_breure"
 version = "1.0.5"
 
 repositories {

@@ -1,4 +1,4 @@
-package com.example.splitrouter;
+package io.github.f_breure.splitrouter;
 
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;

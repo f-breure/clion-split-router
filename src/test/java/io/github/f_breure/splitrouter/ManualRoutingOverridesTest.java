@@ -1,4 +1,4 @@
-package com.example.splitrouter;
+package io.github.f_breure.splitrouter;
 
 import com.intellij.ui.tabs.TabInfo;
 import com.intellij.util.xmlb.XmlSerializer;

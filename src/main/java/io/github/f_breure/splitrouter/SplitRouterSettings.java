@@ -1,4 +1,4 @@
-package com.example.splitrouter;
+package io.github.f_breure.splitrouter;
 
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.PersistentStateComponent;
@@ -13,7 +13,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 @State(
-        name = "com.example.splitrouter.SplitRouterSettings",
+        name = "io.github.f_breure.splitrouter.SplitRouterSettings",
         storages = @Storage("SplitRouterSettings.xml")
 )
 public class SplitRouterSettings implements PersistentStateComponent<SplitRouterSettings> {

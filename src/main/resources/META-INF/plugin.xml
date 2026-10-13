@@ -1,5 +1,5 @@
 <idea-plugin>
-    <id>com.example.clion.splitrouter</id>
+    <id>io.github.f_breure.clion.splitrouter</id>
     <name>Split Window File Router</name>
     <vendor email="frank@svmorninglight.com"
             url="https://github.com/f-breure/clion-split-router">Frank Breure</vendor>
@@ -37,18 +37,18 @@
     <depends>com.intellij.modules.platform</depends>
 
     <extensions defaultExtensionNs="com.intellij">
-        <applicationService serviceImplementation="com.example.splitrouter.SplitRouterSettings"/>
-        <projectService serviceImplementation="com.example.splitrouter.ManualRoutingOverrides"/>
+        <applicationService serviceImplementation="io.github.f_breure.splitrouter.SplitRouterSettings"/>
+        <projectService serviceImplementation="io.github.f_breure.splitrouter.ManualRoutingOverrides"/>
         <projectConfigurable parentId="tools"
-                                 instance="com.example.splitrouter.SplitRouterConfigurable"
-                                 id="com.example.splitrouter.SplitRouterConfigurable"
+                                 instance="io.github.f_breure.splitrouter.SplitRouterConfigurable"
+                                 id="io.github.f_breure.splitrouter.SplitRouterConfigurable"
                                  displayName="Split Window File Router"/>
     </extensions>
 
     <applicationListeners>
-        <listener class="com.example.splitrouter.FileSplitRouterListener"
+        <listener class="io.github.f_breure.splitrouter.FileSplitRouterListener"
                   topic="com.intellij.openapi.fileEditor.FileEditorManagerListener"/>
-        <listener class="com.example.splitrouter.FileSplitRouterListener"
+        <listener class="io.github.f_breure.splitrouter.FileSplitRouterListener"
                   topic="com.intellij.openapi.fileEditor.FileEditorManagerListener$Before"/>
     </applicationListeners>
 </idea-plugin>
