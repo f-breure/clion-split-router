@@ -1,10 +1,10 @@
 plugins {
     id("java")
-    id("org.jetbrains.intellij.platform") version "2.1.0"
+    id("org.jetbrains.intellij.platform") version "2.19.0"
 }
 
 group = "com.example"
-version = "1.0.0"
+version = "1.0.5"
 
 repositories {
     mavenCentral()
@@ -15,9 +15,9 @@ repositories {
 }
 
 dependencies {
+    testImplementation("junit:junit:4.13.2")
     intellijPlatform {
         clion("2026.2.3")
-        instrumentationTools()
     }
 }
 
