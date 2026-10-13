@@ -7,8 +7,6 @@ import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.fileEditor.TextEditor;
 import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx;
-import com.intellij.openapi.fileEditor.ex.FileEditorWithProvider;
-import com.intellij.openapi.fileEditor.impl.EditorCompositeListener;
 import com.intellij.openapi.fileEditor.impl.EditorWindow;
 import com.intellij.openapi.fileEditor.impl.EditorsSplitters;
 import com.intellij.openapi.fileEditor.impl.FileEditorOpenOptions;
@@ -27,6 +25,7 @@ import java.util.Comparator;
 import java.util.Set;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class FileSplitRouterListener implements FileEditorManagerListener {
 
@@ -167,11 +166,15 @@ public class FileSplitRouterListener implements FileEditorManagerListener {
             overrides.endFocusTransfer(file.getUrl());
             return;
         }
+        AtomicBoolean active = new AtomicBoolean(true);
         var listenerLifetime = Disposer.newDisposable("Split router editor readiness");
-        Disposer.register(composite, listenerLifetime);
+        Disposer.register(composite, () -> {
+            active.set(false);
+            Disposer.dispose(listenerLifetime);
+        });
         logFocus("waiting for editor", manager, window, file, overrides, selectionVersion);
         Runnable focusSelectedEditor = () -> {
-            if (Disposer.isDisposed(listenerLifetime)) return;
+            if (!active.get()) return;
             logFocus("editor readiness callback", manager, window, file, overrides, selectionVersion);
             if (project.isDisposed() || window.isDisposed() || !file.isValid()
                     || selectionVersion != overrides.getSelectionVersion()
@@ -179,6 +182,7 @@ public class FileSplitRouterListener implements FileEditorManagerListener {
                     || window.getSelectedComposite() != composite) {
                 LOG.debug("Split router: readiness callback cancelled; see preceding state");
                 overrides.endFocusTransfer(file.getUrl());
+                active.set(false);
                 Disposer.dispose(listenerLifetime);
                 return;
             }
@@ -187,10 +191,11 @@ public class FileSplitRouterListener implements FileEditorManagerListener {
                 LOG.debug("Split router: selected editor not created yet");
                 return;
             }
+            active.set(false);
             Disposer.dispose(listenerLifetime);
             IdeFocusManager focusManager = IdeFocusManager.getInstance(project);
-            Runnable focus = () -> focusManager.doWhenFocusSettlesDown(() -> {
-                logFocus("loaded editor; focus settled", manager, window, file,
+            Runnable focus = () -> SwingUtilities.invokeLater(() -> {
+                logFocus("loaded editor; requesting focus", manager, window, file,
                         overrides, selectionVersion);
                 if (project.isDisposed() || window.isDisposed() || !file.isValid()
                         || selectionVersion != overrides.getSelectionVersion()
@@ -221,7 +226,7 @@ public class FileSplitRouterListener implements FileEditorManagerListener {
                             LOG.debug("Split router: focus request completed; owner="
                                     + componentId(KeyboardFocusManager.getCurrentKeyboardFocusManager()
                                     .getFocusOwner()));
-                            focusManager.doWhenFocusSettlesDown(() ->
+                            SwingUtilities.invokeLater(() ->
                                     logFocus("after focus request settled", manager, window,
                                             file, overrides, selectionVersion));
                         });
@@ -230,22 +235,24 @@ public class FileSplitRouterListener implements FileEditorManagerListener {
                 }
             });
             if (selectedEditor instanceof TextEditor textEditor) {
-                LOG.debug("Split router: registering runWhenLoaded; loaded="
-                        + textEditor.isEditorLoaded());
+                LOG.debug("Split router: registering runWhenLoaded");
                 manager.runWhenLoaded(textEditor.getEditor(), focus);
             } else {
                 focus.run();
             }
         };
         // A new composite can exist before its asynchronous file editors are created.
-        composite.addListener(new EditorCompositeListener() {
-            @Override
-            public void editorAdded(FileEditorWithProvider editor) {
-                LOG.debug("Split router: editorAdded; editor="
-                        + editor.getFileEditor().getClass().getName());
-                ApplicationManager.getApplication().invokeLater(focusSelectedEditor);
-            }
-        }, listenerLifetime);
+        project.getMessageBus().connect(listenerLifetime).subscribe(
+                FileEditorManagerListener.FILE_EDITOR_MANAGER,
+                new FileEditorManagerListener() {
+                    @Override
+                    public void fileOpened(FileEditorManager source, VirtualFile openedFile) {
+                        if (file.equals(openedFile)) {
+                            ApplicationManager.getApplication().invokeLater(focusSelectedEditor);
+                        }
+                    }
+                }
+        );
         ApplicationManager.getApplication().invokeLater(focusSelectedEditor);
     }
 

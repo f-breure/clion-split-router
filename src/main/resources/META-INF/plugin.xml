@@ -1,5 +1,5 @@
 <idea-plugin>
-    <id>io.github.f_breure.clion.splitrouter</id>
+    <id>io.github.f_breure.splitrouter</id>
     <name>Split Window File Router</name>
     <vendor email="frank@svmorninglight.com"
             url="https://github.com/f-breure/clion-split-router">Frank Breure</vendor>
@@ -25,6 +25,7 @@
         Copyright (C) 2026 Frank Breure.</p>
     ]]></description>
     <change-notes><![CDATA[
+        <p>1.1.2: Remove deprecated and experimental API usages.</p>
         <p>1.1.1: Clear manual routing overrides when tabs are moved back to
         their default pane, and improve routing and focus behavior for newly
         opened files.</p>

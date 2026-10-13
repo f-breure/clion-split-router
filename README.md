@@ -48,11 +48,42 @@ Java 21-compatible bytecode. Install JDK 25 before building.
 ./gradlew buildPlugin
 ```
 
-Install `build/distributions/clion-split-router-1.1.1.zip` using
+Install `build/distributions/clion-split-router-1.1.2.zip` using
 **Settings > Plugins > Install Plugin from Disk**.
 
 The plugin uses IntelliJ Platform editor implementation APIs. Compatibility
 with other IDEs or future CLion versions is not guaranteed.
+
+## Publish to JetBrains Marketplace
+
+The first Marketplace release must be uploaded manually. Marketplace expects
+the plugin ZIP to be signed. Create and keep the signing key and certificate
+outside this repository, then provide their PEM contents and your Marketplace
+token through environment variables; never commit these values:
+
+```sh
+export PRIVATE_KEY="$(cat /secure/path/private.pem)"
+export CERTIFICATE_CHAIN="$(cat /secure/path/chain.crt)"
+export PRIVATE_KEY_PASSWORD="your-key-password"
+export PUBLISH_TOKEN="your-marketplace-token"
+./gradlew signPlugin
+```
+
+Create a Marketplace token from
+https://plugins.jetbrains.com/author/me/tokens. The Marketplace signing
+documentation describes generating the private key and certificate with
+OpenSSL: https://plugins.jetbrains.com/docs/intellij/plugin-signing.html.
+
+For the initial listing, sign in at https://plugins.jetbrains.com/plugin/add,
+create or select a vendor profile, accept the developer agreement, and upload
+the signed ZIP produced by `signPlugin`. Select CLion as the compatible IDE,
+set the license to GPL-3.0-only, and complete the listing details. JetBrains
+reviews new listings before they become publicly available.
+
+After the initial listing exists, publish later versions with
+`./gradlew publishPlugin`, providing the same signing variables and
+`PUBLISH_TOKEN`. Increase the version before each upload; Marketplace will not
+accept a second artifact with the same version.
 
 ## Focus diagnostics
 
