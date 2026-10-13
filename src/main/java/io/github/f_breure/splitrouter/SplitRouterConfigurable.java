@@ -1,8 +1,8 @@
 package io.github.f_breure.splitrouter;
 
 import com.intellij.openapi.options.Configurable;
-import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,7 +30,7 @@ public class SplitRouterConfigurable implements Configurable {
     public JComponent createComponent() {
         JPanel panel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(4, 4, 4, 4);
+        gbc.insets = JBUI.insets(4);
         gbc.anchor = GridBagConstraints.WEST;
 
         gbc.gridx = 0;
@@ -72,7 +72,7 @@ public class SplitRouterConfigurable implements Configurable {
     }
 
     @Override
-    public void apply() throws ConfigurationException {
+    public void apply() {
         if (extensionsField != null) {
             SplitRouterSettings.getInstance().headerExtensions = extensionsField.getText().trim();
         }

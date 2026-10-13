@@ -2,6 +2,7 @@ package io.github.f_breure.splitrouter;
 
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.components.PersistentStateComponent;
+import com.intellij.openapi.components.Service;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.components.StoragePathMacros;
@@ -10,6 +11,7 @@ import com.intellij.openapi.fileEditor.impl.EditorWindow;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.tabs.TabInfo;
+import org.jspecify.annotations.NonNull;
 
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
@@ -21,6 +23,7 @@ import java.util.Set;
 import java.util.function.BooleanSupplier;
 
 @State(name = "SplitRouterManualOverrides", storages = @Storage(StoragePathMacros.WORKSPACE_FILE))
+@Service(Service.Level.PROJECT)
 public final class ManualRoutingOverrides implements PersistentStateComponent<ManualRoutingOverrides.SavedState>, Disposable {
     public static final class SavedState {
         public List<String> fileUrls = new ArrayList<>();
@@ -226,7 +229,7 @@ public final class ManualRoutingOverrides implements PersistentStateComponent<Ma
         }
 
         @Override
-        public void dragOutStarted(MouseEvent event, TabInfo tab) {
+        public void dragOutStarted(@NonNull MouseEvent event, @NonNull TabInfo tab) {
             dragging.add(url);
             try {
                 original.dragOutStarted(event, tab);
@@ -237,7 +240,7 @@ public final class ManualRoutingOverrides implements PersistentStateComponent<Ma
         }
 
         @Override
-        public void processDragOut(MouseEvent event, TabInfo tab) {
+        public void processDragOut(@NonNull MouseEvent event, @NonNull TabInfo tab) {
             try {
                 original.processDragOut(event, tab);
             } catch (RuntimeException | Error failure) {
@@ -247,7 +250,7 @@ public final class ManualRoutingOverrides implements PersistentStateComponent<Ma
         }
 
         @Override
-        public void dragOutFinished(MouseEvent event, TabInfo tab) {
+        public void dragOutFinished(@NonNull MouseEvent event, @NonNull TabInfo tab) {
             try {
                 original.dragOutFinished(event, tab);
                 if (changedPane.getAsBoolean()) {
@@ -262,7 +265,7 @@ public final class ManualRoutingOverrides implements PersistentStateComponent<Ma
         }
 
         @Override
-        public void dragOutCancelled(TabInfo tab) {
+        public void dragOutCancelled(@NonNull TabInfo tab) {
             try {
                 original.dragOutCancelled(tab);
             } finally {

@@ -14,6 +14,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.IdeFocusManager;
+import org.jspecify.annotations.NonNull;
 
 import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
@@ -59,7 +60,7 @@ public class FileSplitRouterListener implements FileEditorManagerListener {
     }
 
     @Override
-    public void fileOpened(FileEditorManager source, VirtualFile file) {
+    public void fileOpened(FileEditorManager source, @NonNull VirtualFile file) {
         FileEditorManagerEx manager = FileEditorManagerEx.getInstanceEx(source.getProject());
         // The pane holding the new tab may not be the current pane.
         boolean selected = Arrays.stream(manager.getSplitters().getWindows())
@@ -246,7 +247,7 @@ public class FileSplitRouterListener implements FileEditorManagerListener {
                 FileEditorManagerListener.FILE_EDITOR_MANAGER,
                 new FileEditorManagerListener() {
                     @Override
-                    public void fileOpened(FileEditorManager source, VirtualFile openedFile) {
+                    public void fileOpened(@NonNull FileEditorManager source, @NonNull VirtualFile openedFile) {
                         if (file.equals(openedFile)) {
                             ApplicationManager.getApplication().invokeLater(focusSelectedEditor);
                         }

@@ -51,7 +51,6 @@
 
     <extensions defaultExtensionNs="com.intellij">
         <applicationService serviceImplementation="io.github.f_breure.splitrouter.SplitRouterSettings"/>
-        <projectService serviceImplementation="io.github.f_breure.splitrouter.ManualRoutingOverrides"/>
         <projectConfigurable parentId="tools"
                                  instance="io.github.f_breure.splitrouter.SplitRouterConfigurable"
                                  id="io.github.f_breure.splitrouter.SplitRouterConfigurable"
