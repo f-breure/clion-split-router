@@ -1,0 +1,44 @@
+<idea-plugin>
+    <id>com.example.clion.splitrouter</id>
+    <name>Split Window File Router</name>
+    <vendor email="frank@svmorninglight.com"
+            url="https://github.com/f-breure/clion-split-router">Frank Breure</vendor>
+    <description><![CDATA[
+        <p>Keep headers and implementation files side by side without manually moving tabs.</p>
+        <p>Split Window File Router is designed for a two-column editor layout in CLion.
+        When files open, it routes files with configured extensions to the right editor
+        pane and all other files to the left.</p>
+        <ul>
+            <li>Default right-pane extensions: h, hpp, hxx, hh, inc, inl, tpp, ipp.</li>
+            <li>Customize extensions in Settings &gt; Tools &gt; Split Window File Router.</li>
+            <li>Settings persist between IDE sessions.</li>
+            <li>With only one editor pane, files open normally.</li>
+        </ul>
+        <p>Create a side-by-side editor split before opening files. The plugin does not
+        create splits automatically. Matching is extension-based, not based on
+        include directives, paths, or filename glob patterns.</p>
+        <p><a href="https://github.com/f-breure/clion-split-router">Source code</a>
+        | <a href="https://github.com/f-breure/clion-split-router/issues">Report an issue</a></p>
+    ]]></description>
+    <change-notes><![CDATA[
+        <p>Initial release: automatic routing to left and right editor panes,
+        with persistent, configurable right-pane extensions.</p>
+    ]]></change-notes>
+
+    <depends>com.intellij.modules.platform</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <applicationService serviceImplementation="com.example.splitrouter.SplitRouterSettings"/>
+        <applicationConfigurable parentId="tools"
+                                 instance="com.example.splitrouter.SplitRouterConfigurable"
+                                 id="com.example.splitrouter.SplitRouterConfigurable"
+                                 displayName="Split Window File Router"/>
+    </extensions>
+
+    <applicationListeners>
+        <listener class="com.example.splitrouter.FileSplitRouterListener"
+                  topic="com.intellij.openapi.fileEditor.FileEditorManagerListener"/>
+        <listener class="com.example.splitrouter.FileSplitRouterListener"
+                  topic="com.intellij.openapi.fileEditor.FileEditorManagerListener$Before"/>
+    </applicationListeners>
+</idea-plugin>
